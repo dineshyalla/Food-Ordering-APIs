@@ -159,10 +159,10 @@ router.post("/dinesh/createOrder", function(req, res, next) {
         console.error("SQL Connection error: ", err);
         return next(ex);
       } else {
-        var insertSql = "INSERT INTO OrderTable SET ?";
+        var insertSql = "INSERT INTO OrderT SET ?";
         var insertValues = {
           Order_Id: req.param("orderId"),
-          Customer_Id: req.param("customerId"),
+          User_Id: req.param("userId"),
           Tax: req.param("tax"),
           Discount: req.param("discount"),
           Total_Price: req.param("totalPrice"),
@@ -186,6 +186,7 @@ router.post("/dinesh/createOrder", function(req, res, next) {
   }
 }); //end of Post API
 
+// get orders API
 router.get("/dinesh/getOrder", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
@@ -193,12 +194,9 @@ router.get("/dinesh/getOrder", function(req, res, next) {
         console.error("SQL Connection error: ", err);
         return next(err);
       } else {
-        if (
-          req.param("customerId") == "undefined" ||
-          req.param("customerId") == null
-        ) {
+        if (req.param("userId") == "undefined" || req.param("userId") == null) {
           console.log("Return all orders");
-          conn.query("select * from OrderTable", function(err, rows, fields) {
+          conn.query("select * from OrderT", function(err, rows, fields) {
             if (err) {
               console.error("SQL error: ", err);
               return next(err);
@@ -213,8 +211,8 @@ router.get("/dinesh/getOrder", function(req, res, next) {
         } else {
           console.log("entered else");
           conn.query(
-            "select Order_Id,Customer_Id,Tax,Discount,Total_Price,Chef_Id,Order_Date from OrderTable where Customer_Id = ?",
-            [req.param("customerId")],
+            "select Order_Id,User_Id,Tax,Discount,Total_Price,Chef_Id,Order_Date from OrderT where User_Id = ?",
+            [req.param("userId")],
             function(err, rows, fields) {
               if (err) {
                 console.error("SQL error: ", err);
@@ -237,8 +235,8 @@ router.get("/dinesh/getOrder", function(req, res, next) {
   }
 });
 
-//API for Getting Menu
-router.get("/dinesh/getMenu1", function(req, res, next) {
+//API for Getting Distinct chief Ids
+router.get("/dinesh/Chef", function(req, res, next) {
   try {
     console.log("This is Params" + req.param("empId"));
 
@@ -249,7 +247,7 @@ router.get("/dinesh/getMenu1", function(req, res, next) {
       } else {
         if (req.param("empId") == "undefined" || req.param("empId") == null) {
           console.log("entered if");
-          conn.query("SELECT DISTINCT (Chef_Id) Menu;", function(
+          conn.query("select distinct (Chef_Id) from Menu", function(
             err,
             rows,
             fields
@@ -265,8 +263,8 @@ router.get("/dinesh/getMenu1", function(req, res, next) {
               resEmp.push(empObj);
             }
             console.log("result " + resEmp);
-            res.json({ hello: "dinesh" });
-            //  res.json(resEmp);
+            //res.json({ hello: "dinesh" });
+            res.json(resEmp);
           });
         } else {
           console.log("entered else");
@@ -284,7 +282,7 @@ router.get("/dinesh/getMenu1", function(req, res, next) {
               var empObj = rows[empIndex];
               resEmp.push(empObj);
             }
-            res.json({ resEmp: "abhi" });
+            res.json(resEmp);
           });
         } //end of null else
       } // end of try else
@@ -294,7 +292,6 @@ router.get("/dinesh/getMenu1", function(req, res, next) {
     return next(ex);
   }
 });
-
 //API to save Payment Details
 router.post("/dinesh/savePayment", function(req, res, next) {
   try {
