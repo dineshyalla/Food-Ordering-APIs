@@ -238,7 +238,7 @@ router.get("/dinesh/getOrder", function(req, res, next) {
 });
 
 //API for Getting Menu
-router.get("/dinesh/getMenu", function(req, res, next) {
+router.get("/dinesh/getMenu1", function(req, res, next) {
   try {
     console.log("This is Params" + req.param("empId"));
 
@@ -249,7 +249,32 @@ router.get("/dinesh/getMenu", function(req, res, next) {
       } else {
         if (req.param("empId") == "undefined" || req.param("empId") == null) {
           console.log("entered if");
-          conn.query("select * from Menu", function(err, rows, fields) {
+          conn.query("SELECT DISTINCT (Chef_Id) Menu;", function(
+            err,
+            rows,
+            fields
+          ) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
+            }
+            var resEmp = [];
+            for (var empIndex in rows) {
+              var empObj = rows[empIndex];
+              console.log("loop is: " + empObj);
+              resEmp.push(empObj);
+            }
+            console.log("result " + resEmp);
+            res.json({ hello: "dinesh" });
+            //  res.json(resEmp);
+          });
+        } else {
+          console.log("entered else");
+          conn.query("select distinct (Chef_Id) from Menu", function(
+            err,
+            rows,
+            fields
+          ) {
             if (err) {
               console.error("SQL error: ", err);
               return next(err);
@@ -259,26 +284,8 @@ router.get("/dinesh/getMenu", function(req, res, next) {
               var empObj = rows[empIndex];
               resEmp.push(empObj);
             }
-            res.json(resEmp);
+            res.json({ resEmp: "abhi" });
           });
-        } else {
-          console.log("entered else");
-          conn.query(
-            "select Emp_Id,Emp_Name,Role_Id from Employee where Emp_Id = ?",
-            [req.param("empId")],
-            function(err, rows, fields) {
-              if (err) {
-                console.error("SQL error: ", err);
-                return next(err);
-              }
-              var resEmp = [];
-              for (var empIndex in rows) {
-                var empObj = rows[empIndex];
-                resEmp.push(empObj);
-              }
-              res.json(resEmp);
-            }
-          );
         } //end of null else
       } // end of try else
     });
