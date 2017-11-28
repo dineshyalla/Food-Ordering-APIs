@@ -8,6 +8,97 @@ router.get("/", function(req, res, next) {
 
 module.exports = router;
 
+//Api to create User
+router.post("/dinesh/createUser", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(ex);
+      } else {
+        var insertSql = "INSERT INTO User SET ?";
+        var insertValues = {
+          User_Id: req.param("userId"),
+          Email: req.param("email"),
+          Password: req.param("password"),
+          Name: req.param("name"),
+          Street_Address: req.param("streetAddress"),
+          Zip: req.param("zip"),
+          State: req.param("state"),
+          Longitude: req.param("longitude"),
+          Payment_Id: req.param("paymentId"),
+          Created_Date: req.param("createdAt"),
+          Updated_Date: req.param("updatedAt"),
+          User_Type: req.param("userType")
+        };
+
+        var query = conn.query(insertSql, insertValues, function(err, result) {
+          if (err) {
+            res.json({ dinesh: "failure" });
+            return next(err);
+          }
+          console.log(result);
+          res.json({ dinesh: "success" });
+        });
+      } // end of else
+    }); // end of getConnection
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+}); //end of Post API
+
+//Api to authenticate user
+
+router.get("/dinesh/userAuthenticate", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error:" + err);
+        return next(err);
+      } else {
+        if (req.param("userId") == "undefined" || req.param("userId") == null) {
+          conn.query("SELECT * from User", function(err, rows, fields) {
+            if (err) {
+              console.error("SQL error:" + err);
+              return next(err);
+            }
+            var resCard = [];
+            for (var items in rows) {
+              var itemObj = rows[items];
+              resCard.push(itemObj);
+            }
+            res.json(resCard);
+          });
+        } else {
+          console.log("recieved userId:" + req.param("userId"));
+          var userId = req.param("userId");
+          var password = req.param("password");
+          conn.query(
+            "SELECT Name,Street_Address,State,Zip from User where User_Id = ? AND Password = ?",
+            [userId, password],
+            function(err, rows, fields) {
+              if (err) {
+                console.error("SQL error:" + err);
+                return next(err);
+              }
+              var resCard = [];
+              for (var items in rows) {
+                var itemObj = rows[items];
+                resCard.push(itemObj);
+              }
+              res.json(resCard);
+            }
+          );
+        } //end of null else
+      } //end of try else
+    }); // end of getConnection
+  } catch (ex) {
+    console.error("Internal erro:" + ex);
+    return next(ex);
+  }
+});
+
 //Create Menu Api
 router.post("/dinesh/createMenu", function(req, res, next) {
   try {
