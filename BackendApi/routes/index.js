@@ -9,7 +9,7 @@ router.get("/", function(req, res, next) {
 module.exports = router;
 
 //Api to create User
-router.post("/dinesh/createUser", function(req, res, next) {
+router.post("/createUser", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
@@ -50,7 +50,7 @@ router.post("/dinesh/createUser", function(req, res, next) {
 
 //Api to authenticate user
 
-router.get("/dinesh/userAuthenticate", function(req, res, next) {
+router.get("/userAuthenticate", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
@@ -100,7 +100,7 @@ router.get("/dinesh/userAuthenticate", function(req, res, next) {
 });
 
 //Create Menu Api
-router.post("/dinesh/createMenu", function(req, res, next) {
+router.post("/createMenu", function(req, res, next) {
   try {
     //   console.log("checking if map exists" + req.param());
     //   console.log(JSON.stringify(req.param());
@@ -132,18 +132,13 @@ router.post("/dinesh/createMenu", function(req, res, next) {
         var query = conn.query(insertSql, insertValues, function(err, result) {
           if (err) {
             res.json({ dinesh: "failure" });
-            //console.error("SQL error: ", err);
             return next(err);
           }
           console.log(result);
-          //var Employee_Id = result.insertId;
           res.json({ dinesh: "success" });
         });
       }
     });
-
-    //var reqObj = req.body;
-    //console.log("these are inputs  " + JSON.stringify(reqObj));
   } catch (ex) {
     // end of try
     console.error("Internal error:" + ex);
@@ -152,7 +147,7 @@ router.post("/dinesh/createMenu", function(req, res, next) {
 });
 
 // Create Order API
-router.post("/dinesh/createOrder", function(req, res, next) {
+router.post("/createOrder", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
@@ -187,7 +182,7 @@ router.post("/dinesh/createOrder", function(req, res, next) {
 }); //end of Post API
 
 // get orders API
-router.get("/dinesh/getOrder", function(req, res, next) {
+router.get("/getOrder", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
@@ -218,12 +213,12 @@ router.get("/dinesh/getOrder", function(req, res, next) {
                 console.error("SQL error: ", err);
                 return next(err);
               }
-              var resEmp = [];
-              for (var empIndex in rows) {
-                var empObj = rows[empIndex];
-                resEmp.push(empObj);
+              var resOrder = [];
+              for (var items in rows) {
+                var itemObj = rows[items];
+                resOrder.push(itemObj);
               }
-              res.json(resEmp);
+              res.json(resOrder);
             }
           );
         } //end of null else
@@ -236,54 +231,87 @@ router.get("/dinesh/getOrder", function(req, res, next) {
 });
 
 //API for Getting Distinct chief Ids
-router.get("/dinesh/Chef", function(req, res, next) {
+router.get("/Chef", function(req, res, next) {
   try {
-    console.log("This is Params" + req.param("empId"));
-
     req.getConnection(function(err, conn) {
       if (err) {
         console.error("SQL Connection error: ", err);
         return next(err);
       } else {
-        if (req.param("empId") == "undefined" || req.param("empId") == null) {
+        console.log("entered else");
+        conn.query("select distinct (Chef_Id) from Menu", function(
+          err,
+          rows,
+          fields
+        ) {
+          if (err) {
+            console.error("SQL error: ", err);
+            return next(err);
+          }
+          var resChef = [];
+          for (var chefs in rows) {
+            var resObj = rows[chefs];
+            resChef.push(resObj);
+          }
+          res.json(resChef);
+        });
+      } // end of try else
+    });
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+});
+
+//API to Menu for specific chief based on Cuisine
+router.get("/Chef/Cuisine/Menu", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(err);
+      } else {
+        if (
+          req.param("cuisineType") == "undefined" ||
+          req.param("cuisineType") == null
+        ) {
           console.log("entered if");
-          conn.query("select distinct (Chef_Id) from Menu", function(
-            err,
-            rows,
-            fields
-          ) {
-            if (err) {
-              console.error("SQL error: ", err);
-              return next(err);
+          conn.query(
+            "select Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price from Menu",
+            function(err, rows, fields) {
+              if (err) {
+                console.error("SQL error: ", err);
+                return next(err);
+              }
+              var resMenu = [];
+              for (var menu in rows) {
+                var resObj = rows[menu];
+                console.log("loop is: " + resObj);
+                resMenu.push(resObj);
+              }
+              res.json(resMenu);
             }
-            var resEmp = [];
-            for (var empIndex in rows) {
-              var empObj = rows[empIndex];
-              console.log("loop is: " + empObj);
-              resEmp.push(empObj);
-            }
-            console.log("result " + resEmp);
-            //res.json({ hello: "dinesh" });
-            res.json(resEmp);
-          });
+          );
         } else {
           console.log("entered else");
-          conn.query("select distinct (Chef_Id) from Menu", function(
-            err,
-            rows,
-            fields
-          ) {
-            if (err) {
-              console.error("SQL error: ", err);
-              return next(err);
+          var chefId = req.param("chefId");
+          var cuisineType = req.param("cuisineType");
+          conn.query(
+            "SELECT Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price FROM Chief_DB.Menu where Chef_Id = ? AND Cuisine_Type = ?",
+            [chefId, cuisineType],
+            function(err, rows, fields) {
+              if (err) {
+                console.error("SQL error: ", err);
+                return next(err);
+              }
+              var resMenu = [];
+              for (var menu in rows) {
+                var resObj = rows[menu];
+                resMenu.push(resObj);
+              }
+              res.json(resMenu);
             }
-            var resEmp = [];
-            for (var empIndex in rows) {
-              var empObj = rows[empIndex];
-              resEmp.push(empObj);
-            }
-            res.json(resEmp);
-          });
+          );
         } //end of null else
       } // end of try else
     });
@@ -292,8 +320,9 @@ router.get("/dinesh/Chef", function(req, res, next) {
     return next(ex);
   }
 });
+
 //API to save Payment Details
-router.post("/dinesh/savePayment", function(req, res, next) {
+router.post("/savePayment", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
@@ -326,8 +355,7 @@ router.post("/dinesh/savePayment", function(req, res, next) {
 });
 
 // API to get Card Details
-
-router.get("/dinesh/getCardDetails", function(req, res, next) {
+router.get("/getCardDetails", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
