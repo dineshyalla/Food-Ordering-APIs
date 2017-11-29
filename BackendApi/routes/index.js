@@ -125,6 +125,7 @@ router.post("/createMenu", function(req, res, next) {
           Dish_Name: req.param("dishName"),
           Dish_Description: req.param("dishDescription"),
           Spice_Level: req.param("spiceLevel"),
+          Vegan_Type: req.param("veganType"),
           Price: req.param("price"),
           Chef_Id: req.param("chefId"),
           isActive: req.param("isAct")
@@ -329,7 +330,7 @@ router.post("/savePayment", function(req, res, next) {
         console.error("SQl Connection error:", err);
         return next(err);
       } else {
-        var insertSql = "INSERT INTO PaymentTable SET ?";
+        var insertSql = "INSERT INTO PaymentCard SET ?";
         var insertValues = {
           Pay_Id: req.param("payId"),
           CC_Name: req.param("ccName"),
@@ -363,7 +364,7 @@ router.get("/getCardDetails", function(req, res, next) {
         return next(err);
       } else {
         if (req.param("userId") == "undefined" || req.param("userId") == null) {
-          conn.query("SELECT * from PaymentTable", function(err, rows, fields) {
+          conn.query("SELECT * from PaymentCard", function(err, rows, fields) {
             if (err) {
               console.error("SQL error:" + err);
               return next(err);
@@ -378,7 +379,7 @@ router.get("/getCardDetails", function(req, res, next) {
         } else {
           console.log("recieved userId:" + req.param("userId"));
           conn.query(
-            "SELECT CC_Name,CC_No from PaymentTable where User_Id = ?",
+            "SELECT CC_Name,CC_No from PaymentCard where User_Id = ?",
             [req.param("userId")],
             function(err, rows, fields) {
               if (err) {
