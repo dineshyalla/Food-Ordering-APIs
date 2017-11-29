@@ -322,6 +322,64 @@ router.get("/Chef/Cuisine/Menu", function(req, res, next) {
   }
 });
 
+//API to get Recommendation on Food name
+router.get("/Menu/Recommendation", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(err);
+      } else {
+        if (
+          req.param("identifier") == "undefined" ||
+          req.param("identifier") == null
+        ) {
+          console.log("entered if");
+          conn.query(
+            "select Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price from Menu",
+            function(err, rows, fields) {
+              if (err) {
+                console.error("SQL error: ", err);
+                return next(err);
+              }
+              var resMenu = [];
+              for (var menu in rows) {
+                var resObj = rows[menu];
+                console.log("loop is: " + resObj);
+                resMenu.push(resObj);
+              }
+              res.json(resMenu);
+            }
+          );
+        } else {
+          console.log("entered else");
+          var identifier = "%" + req.param("identifier") + "%";
+          //var cuisineType = req.param("cuisineType");
+          conn.query(
+            "SELECT Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price FROM Menu where Dish_Name LIKE ? OR Dish_Description LIKE ? ORDER BY Dish_Name  LIMIT 20",
+            [identifier, identifier],
+            function(err, rows, fields) {
+              if (err) {
+                console.error("SQL error: ", err);
+                return next(err);
+              }
+              var resMenu = [];
+              for (var menu in rows) {
+                var resObj = rows[menu];
+                resMenu.push(resObj);
+              }
+              res.json(resMenu);
+            }
+          );
+        } //end of null else
+      } // end of try else
+    });
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+});
+
 //API to save Payment Details
 router.post("/savePayment", function(req, res, next) {
   try {
