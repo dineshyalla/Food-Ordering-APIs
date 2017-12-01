@@ -26,10 +26,12 @@ router.post("/createUser", function(req, res, next) {
           Zip: req.param("zip"),
           State: req.param("state"),
           Longitude: req.param("longitude"),
+          Latitude: req.param("latitude"),
           Payment_Id: req.param("paymentId"),
           Created_Date: req.param("createdAt"),
           Updated_Date: req.param("updatedAt"),
-          User_Type: req.param("userType")
+          User_Type: req.param("userType"),
+          Cuisine_Type: req.param("cuisineType")
         };
 
         var query = conn.query(insertSql, insertValues, function(err, result) {
@@ -163,7 +165,8 @@ router.post("/createOrder", function(req, res, next) {
           Discount: req.param("discount"),
           Total_Price: req.param("totalPrice"),
           Chef_Id: req.param("chefId"),
-          Order_Date: req.param("date")
+          Order_Date: req.param("date"),
+          Order_Status: req.param("orderStatus")
         };
 
         var query = conn.query(insertSql, insertValues, function(err, result) {
@@ -182,8 +185,57 @@ router.post("/createOrder", function(req, res, next) {
   }
 }); //end of Post API
 
-// get orders API
-router.get("/getOrder", function(req, res, next) {
+// get all orders for a Chef
+router.get("/getOrder/Chef", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(err);
+      } else {
+        if (req.param("chefId") == "undefined" || req.param("chefId") == null) {
+          console.log("Return all orders");
+          conn.query("select * from OrderT", function(err, rows, fields) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
+            }
+            var resOrder = [];
+            for (var items in rows) {
+              var itemObj = rows[items];
+              resOrder.push(itemObj);
+            }
+            res.json(resOrder);
+          });
+        } else {
+          console.log("entered else");
+          conn.query(
+            "select Order_Id,User_Id,Tax,Discount,Total_Price,Chef_Id,Order_Date from OrderT where Chef_Id = ?",
+            [req.param("chefId")],
+            function(err, rows, fields) {
+              if (err) {
+                console.error("SQL error: ", err);
+                return next(err);
+              }
+              var resOrder = [];
+              for (var items in rows) {
+                var itemObj = rows[items];
+                resOrder.push(itemObj);
+              }
+              res.json(resOrder);
+            }
+          );
+        } //end of null else
+      }
+    });
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+});
+
+//get the order details of Customer based on userId
+router.get("/getOrder/User", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
@@ -206,22 +258,25 @@ router.get("/getOrder", function(req, res, next) {
           });
         } else {
           console.log("entered else");
-          conn.query(
-            "select Order_Id,User_Id,Tax,Discount,Total_Price,Chef_Id,Order_Date from OrderT where User_Id = ?",
-            [req.param("userId")],
-            function(err, rows, fields) {
-              if (err) {
-                console.error("SQL error: ", err);
-                return next(err);
-              }
-              var resOrder = [];
-              for (var items in rows) {
-                var itemObj = rows[items];
-                resOrder.push(itemObj);
-              }
-              res.json(resOrder);
+          var userType = req.param("userType");
+          var userId = req.param("userId");
+          var sqlQuery =
+            "SELECT OrderT.Tax,OrderT.Discount,OrderT.Total_Price,OrderT.Order_Date,OrderT.Order_Status,OrderT.Chef_Id";
+          sqlQuery += " FROM User,OrderT WHERE";
+          sqlQuery +=
+            " User.User_Id = OrderT.User_Id AND OrderT.User_Id = ? AND User.User_Type =1";
+          conn.query(sqlQuery, [userId], function(err, rows, fields) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
             }
-          );
+            var resOrder = [];
+            for (var items in rows) {
+              var itemObj = rows[items];
+              resOrder.push(itemObj);
+            }
+            res.json(resOrder);
+          });
         } //end of null else
       }
     });
@@ -264,18 +319,71 @@ router.get("/Chef", function(req, res, next) {
   }
 });
 
-//API to Menu for specific chief based on Cuisine
-router.get("/Chef/Cuisine/Menu", function(req, res, next) {
+//get Chef info based on chefId
+router.get("/Chef/Info", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
         console.error("SQL Connection error: ", err);
         return next(err);
       } else {
-        if (
-          req.param("cuisineType") == "undefined" ||
-          req.param("cuisineType") == null
-        ) {
+        if (req.param("chefId") == "undefined" || req.param("chefId") == null) {
+          console.log("entered if");
+          conn.query("select * from User where User_Type = 2", function(
+            err,
+            rows,
+            fields
+          ) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
+            }
+            var resMenu = [];
+            for (var menu in rows) {
+              var resObj = rows[menu];
+              console.log("loop is: " + resObj);
+              resMenu.push(resObj);
+            }
+            res.json(resMenu);
+          });
+        } else {
+          console.log("entered else");
+          var chefId = req.param("chefId");
+          var cuisineType = req.param("cuisineType");
+          conn.query(
+            "SELECT * FROM User where User_Id = ? AND User_Type = 2",
+            [chefId, cuisineType],
+            function(err, rows, fields) {
+              if (err) {
+                console.error("SQL error: ", err);
+                return next(err);
+              }
+              var resMenu = [];
+              for (var menu in rows) {
+                var resObj = rows[menu];
+                resMenu.push(resObj);
+              }
+              res.json(resMenu);
+            }
+          );
+        } //end of null else
+      } // end of try else
+    });
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+});
+
+//API to Menu for specific chief
+router.get("/Chef/Menu", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(err);
+      } else {
+        if (req.param("chefId") == "undefined" || req.param("chefId") == null) {
           console.log("entered if");
           conn.query(
             "select Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price from Menu",
@@ -298,7 +406,7 @@ router.get("/Chef/Cuisine/Menu", function(req, res, next) {
           var chefId = req.param("chefId");
           var cuisineType = req.param("cuisineType");
           conn.query(
-            "SELECT Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price FROM Chief_DB.Menu where Chef_Id = ? AND Cuisine_Type = ?",
+            "SELECT Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price FROM Menu where Chef_Id = ?",
             [chefId, cuisineType],
             function(err, rows, fields) {
               if (err) {
