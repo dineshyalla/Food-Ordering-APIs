@@ -210,7 +210,7 @@ router.get("/getOrder/Chef", function(req, res, next) {
         } else {
           console.log("entered else");
           conn.query(
-            "select Order_Id,User_Id,Tax,Discount,Total_Price,Chef_Id,Order_Date from OrderT where Chef_Id = ?",
+            "select OrderT.Order_Id,OrderT.User_Id,OrderT.Tax,OrderT.Discount,OrderT.Total_Price,OrderT.Chef_Id,OrderT.Order_Date from User,OrderT where OrderT.Chef_Id = ? AND User.User_Type=2",
             [req.param("chefId")],
             function(err, rows, fields) {
               if (err) {
@@ -319,8 +319,41 @@ router.get("/Chef", function(req, res, next) {
   }
 });
 
-//get Chef info based on chefId
+//API for Getting Distinct chief Ids
 router.get("/Chef/Info", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(err);
+      } else {
+        console.log("entered else");
+        conn.query("select * from User where User_Type=2", function(
+          err,
+          rows,
+          fields
+        ) {
+          if (err) {
+            console.error("SQL error: ", err);
+            return next(err);
+          }
+          var resChef = [];
+          for (var chefs in rows) {
+            var resObj = rows[chefs];
+            resChef.push(resObj);
+          }
+          res.json(resChef);
+        });
+      } // end of try else
+    });
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+});
+
+//get Chef info based on chefId
+router.get("/ChefID/Info", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
       if (err) {
