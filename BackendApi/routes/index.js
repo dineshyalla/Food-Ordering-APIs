@@ -328,22 +328,21 @@ router.get("/Chef/Info", function(req, res, next) {
         return next(err);
       } else {
         console.log("entered else");
-        conn.query("select * from User where User_Type=2", function(
-          err,
-          rows,
-          fields
-        ) {
-          if (err) {
-            console.error("SQL error: ", err);
-            return next(err);
+        conn.query(
+          "select User_Id AS Chef_Id,Email,Name,Street_Address,Zip,State,Longitude,Latitude,User_Type,Cuisine_Type from User where User_Type=2",
+          function(err, rows, fields) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
+            }
+            var resChef = [];
+            for (var chefs in rows) {
+              var resObj = rows[chefs];
+              resChef.push(resObj);
+            }
+            res.json(resChef);
           }
-          var resChef = [];
-          for (var chefs in rows) {
-            var resObj = rows[chefs];
-            resChef.push(resObj);
-          }
-          res.json(resChef);
-        });
+        );
       } // end of try else
     });
   } catch (ex) {
