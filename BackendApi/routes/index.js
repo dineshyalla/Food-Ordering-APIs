@@ -59,7 +59,7 @@ router.get("/userAuthenticate", function(req, res, next) {
         console.error("SQL Connection error:" + err);
         return next(err);
       } else {
-        if (req.param("userId") == "undefined" || req.param("userId") == null) {
+        if (req.param("email") == "undefined" || req.param("email") == null) {
           conn.query("SELECT * from User", function(err, rows, fields) {
             if (err) {
               console.error("SQL error:" + err);
@@ -73,12 +73,12 @@ router.get("/userAuthenticate", function(req, res, next) {
             res.json(resCard);
           });
         } else {
-          console.log("recieved userId:" + req.param("userId"));
-          var userId = req.param("userId");
+          console.log("recieved email:" + req.param("email"));
+          var email = req.param("email");
           var password = req.param("password");
           conn.query(
-            "SELECT Name,Street_Address,State,Zip from User where User_Id = ? AND Password = ?",
-            [userId, password],
+            "SELECT User_Id,Name,Street_Address,State,Zip from User where Email = ? AND Password = ?",
+            [email, password],
             function(err, rows, fields) {
               if (err) {
                 console.error("SQL error:" + err);
@@ -319,7 +319,7 @@ router.get("/Chef", function(req, res, next) {
   }
 });
 
-//API for Getting Distinct chief Ids
+//API for Getting Information of chief
 router.get("/Chef/Info", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
