@@ -385,7 +385,7 @@ router.get("/ChefID/Info", function(req, res, next) {
           var chefId = req.param("chefId");
           var cuisineType = req.param("cuisineType");
           conn.query(
-            "SELECT * FROM User where User_Id = ? AND User_Type = 2",
+            "SELECT User_Id,Email,Password, Name AS Business_Name,Street_Address,Zip,State,Longitude,Latitude,Cuisine_Type,User_Type,Payment_Id,Created_Date FROM User where User_Id = ? AND User_Type = 2",
             [chefId, cuisineType],
             function(err, rows, fields) {
               if (err) {
