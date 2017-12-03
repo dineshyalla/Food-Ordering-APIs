@@ -210,7 +210,7 @@ router.get("/getOrder/Chef", function(req, res, next) {
         } else {
           console.log("entered else");
           conn.query(
-            "select OrderT.Order_Id,OrderT.User_Id,OrderT.Tax,OrderT.Discount,OrderT.Total_Price,OrderT.Chef_Id,OrderT.Order_Date from User,OrderT where OrderT.Chef_Id = ? AND User.User_Type=2",
+            "select * from OrderT where Chef_Id = ?",
             [req.param("chefId")],
             function(err, rows, fields) {
               if (err) {
