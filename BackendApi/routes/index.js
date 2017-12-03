@@ -161,9 +161,11 @@ router.post("/createOrder", function(req, res, next) {
         var insertValues = {
           Order_Id: req.param("orderId"),
           User_Id: req.param("userId"),
+          Dish_Name: req.param("dishName"),
           Tax: req.param("tax"),
           Discount: req.param("discount"),
           Total_Price: req.param("totalPrice"),
+          Quantity: req.param("quantity"),
           Chef_Id: req.param("chefId"),
           Order_Date: req.param("date"),
           Order_Status: req.param("orderStatus")
