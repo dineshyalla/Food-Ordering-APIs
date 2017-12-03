@@ -236,7 +236,7 @@ router.get("/getOrder/Chef", function(req, res, next) {
   }
 });
 
-//get the order details of Customer based on userId
+//get the Order details of Customer based on userId
 router.get("/getOrder/User", function(req, res, next) {
   try {
     req.getConnection(function(err, conn) {
@@ -441,7 +441,7 @@ router.get("/Chef/Menu", function(req, res, next) {
           var cuisineType = req.param("cuisineType");
           conn.query(
             "SELECT Dish_Name,Cuisine_Type,Dish_Description,Spice_Level,Price FROM Menu where Chef_Id = ?",
-            [chefId, cuisineType],
+            [chefId],
             function(err, rows, fields) {
               if (err) {
                 console.error("SQL error: ", err);
