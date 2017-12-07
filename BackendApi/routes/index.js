@@ -157,29 +157,48 @@ router.post("/createOrder", function(req, res, next) {
         console.error("SQL Connection error: ", err);
         return next(ex);
       } else {
-        var insertSql = "INSERT INTO OrderT SET ?";
-        var insertValues = {
-          Order_Id: req.param("orderId"),
-          User_Id: req.param("userId"),
-          Dish_Name: req.param("dishName"),
-          Tax: req.param("tax"),
-          Discount: req.param("discount"),
-          Total_Price: req.param("totalPrice"),
-          Quantity: req.param("quantity"),
-          Chef_Id: req.param("chefId"),
-          Order_Date: req.param("date"),
-          Order_Status: req.param("orderStatus")
-        };
+        if (req.param("userId") == "undefined" || req.param("userId") == null) {
+          console.log("Return all orders");
+          conn.query("select * from OrderT", function(err, rows, fields) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
+            }
+            var resOrder = [];
+            for (var items in rows) {
+              var itemObj = rows[items];
+              resOrder.push(itemObj);
+            }
+            res.json(resOrder);
+          });
+        } else {
+          var insertSql = "INSERT INTO OrderT SET ?";
+          var insertValues = {
+            Order_Id: req.param("orderId"),
+            User_Id: req.param("userId"),
+            Dish_Name: req.param("dishName"),
+            Tax: req.param("tax"),
+            Discount: req.param("discount"),
+            Total_Price: req.param("totalPrice"),
+            Quantity: req.param("quantity"),
+            Chef_Id: req.param("chefId"),
+            Order_Date: req.param("date"),
+            Order_Status: req.param("orderStatus")
+          };
 
-        var query = conn.query(insertSql, insertValues, function(err, result) {
-          if (err) {
-            res.json({ dinesh: "failure" });
-            return next(err);
-          }
-          console.log(result);
-          res.json({ dinesh: "success" });
-        });
-      } // end of else
+          var query = conn.query(insertSql, insertValues, function(
+            err,
+            result
+          ) {
+            if (err) {
+              res.json({ dinesh: "failure" });
+              return next(err);
+            }
+            console.log(result);
+            res.json({ dinesh: "success" });
+          });
+        } // end of else
+      }
     }); // end of getConnection
   } catch (ex) {
     console.error("Internal error:" + ex);
