@@ -206,6 +206,68 @@ router.post("/createOrder", function(req, res, next) {
   }
 }); //end of Post API
 
+// Update Order Status Api
+router.post("/updateOrder", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(ex);
+      } else {
+        if (
+          req.param("orderId") == "undefined" ||
+          req.param("orderId") == null
+        ) {
+          console.log("Return all orders");
+          conn.query("select * from OrderT", function(err, rows, fields) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
+            }
+            var resOrder = [];
+            for (var items in rows) {
+              var itemObj = rows[items];
+              resOrder.push(itemObj);
+            }
+            res.json(resOrder);
+          });
+        } else {
+          var orderStatus = req.param("orderStatus");
+          var orderId = req.param("orderId");
+          //   Order_Id: req.param("orderId"),
+          //   User_Id: req.param("userId"),
+          //   Dish_Name: req.param("dishName"),
+          //   Tax: req.param("tax"),
+          //   Discount: req.param("discount"),
+          //   Total_Price: req.param("totalPrice"),
+          //   Quantity: req.param("quantity"),
+          //   Chef_Id: req.param("chefId"),
+          //   Order_Date: req.param("date"),
+          //   Order_Status: req.param("orderStatus")
+          // ,
+          //  [orderStatus, orderId]};
+
+          var query = conn.query(
+            "UPDATE OrderT SET Order_Status = ? WHERE Order_Id = ?",
+            [orderStatus, orderId],
+            function(err, result) {
+              if (err) {
+                res.json({ dinesh: "failure" });
+                return next(err);
+              }
+              console.log(result);
+              res.json({ dinesh: "success" });
+            }
+          );
+        } // end of else
+      }
+    }); // end of getConnection
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+}); //end of Post API
+
 // get all orders for a Chef
 router.get("/getOrder/Chef", function(req, res, next) {
   try {
