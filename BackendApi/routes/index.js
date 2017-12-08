@@ -182,8 +182,8 @@ router.post("/createOrder", function(req, res, next) {
             Total_Price: req.param("totalPrice"),
             Quantity: req.param("quantity"),
             Chef_Id: req.param("chefId"),
-            Order_Date: req.param("date"),
-            Order_Status: req.param("orderStatus")
+            Order_Date: new Date(),
+            Order_Status: "Placed"
           };
 
           var query = conn.query(insertSql, insertValues, function(
@@ -344,7 +344,7 @@ router.get("/getOrder/User", function(req, res, next) {
           var userType = req.param("userType");
           var userId = req.param("userId");
           var sqlQuery =
-            "SELECT OrderT.Tax,OrderT.Discount,OrderT.Total_Price,OrderT.Order_Date,OrderT.Order_Status,OrderT.Chef_Id";
+            "SELECT OrderT.Dish_Name,OrderT.Tax,OrderT.Discount,OrderT.Total_Price,OrderT.Order_Date,OrderT.Order_Status,OrderT.Chef_Id";
           sqlQuery += " FROM User,OrderT WHERE";
           sqlQuery +=
             " User.User_Id = OrderT.User_Id AND OrderT.User_Id = ? AND User.User_Type =1";
@@ -394,6 +394,39 @@ router.get("/Chef", function(req, res, next) {
           }
           res.json(resChef);
         });
+      } // end of try else
+    });
+  } catch (ex) {
+    console.error("Internal error:" + ex);
+    return next(ex);
+  }
+});
+
+//API for Getting Distinct chief Ids
+router.get("/Chef/Cuisine_Type", function(req, res, next) {
+  try {
+    req.getConnection(function(err, conn) {
+      if (err) {
+        console.error("SQL Connection error: ", err);
+        return next(err);
+      } else {
+        console.log("entered else");
+        conn.query(
+          "select distinct (Chef_Id) from Menu where Cuisine_Type=?",
+          [req.param("cuisineType")],
+          function(err, rows, fields) {
+            if (err) {
+              console.error("SQL error: ", err);
+              return next(err);
+            }
+            var resChef = [];
+            for (var chefs in rows) {
+              var resObj = rows[chefs];
+              resChef.push(resObj);
+            }
+            res.json(resChef);
+          }
+        );
       } // end of try else
     });
   } catch (ex) {
